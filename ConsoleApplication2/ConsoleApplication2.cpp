@@ -48,6 +48,7 @@ static void findSquares(const Mat& image, vector<vector<Point> >& squares)
 					isContourConvex(Mat(approx)))
 				{
 					double maxCosine = 0;
+<<<<<<< HEAD
 
 					for (int j = 2; j < 5; j++)
 					{
@@ -110,4 +111,20 @@ int main(int /*argc*/, char** /*argv*/)
 		else continueCapture = false;
 	}
 	return 0;
+=======
+
+					for (int j = 2; j < 5; j++)
+					{
+						//znajdywanie maksymalnego cosinusa miedzy krawedziami
+						double cosine = fabs(angle(approx[j % 4], approx[j - 2], approx[j - 1]));
+						maxCosine = MAX(maxCosine, cosine);
+					}
+					//jezeli wszystkie katy sa mniejwiecej wielkosci ~90 stopni -> zapisanie ich do listy
+					if (maxCosine < 0.3)
+						squares.push_back(approx);
+				}
+			}
+		}
+	}
+>>>>>>> 381bc626dbbb01ec43852f026048bc8b76826033
 }
