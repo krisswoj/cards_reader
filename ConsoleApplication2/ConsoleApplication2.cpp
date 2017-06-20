@@ -63,3 +63,4 @@ static void findSquares(const Mat& image, vector<vector<Point> >& squares)
 		}
 	}
 }
+
