@@ -298,3 +298,87 @@ void drawCards(char currentCard, char currentSuit)
 	}
 
 }
+
+//funkcja ktora rysuje zielone kwadraty na ekranie by pomoc w ich zlokalizowaniu i odpowiednim ustawieniu
+static void drawSquares(Mat& image, const vector<vector<Point> >& squares)
+{
+	//pobiera dane kwadratow (ich wierzcholkow) i laczy 4 wierzcholki linia tworzac prostokaty / kwadraty
+	for (size_t i = 0; i < squares.size(); i++)
+	{
+		const Point* p = &squares[i][0];
+		int n = static_cast<int>(squares[i].size());
+		if (p->x > 3 && p->y > 3)
+			polylines(image, &p, &n, 1, true, Scalar(0, 255, 0), 3, LINE_AA);
+	}
+	imshow(wndname, image);
+}
+
+//funkcja do rysowania linii na ekranie - pomagajaca ustawic odpowiedni kat i odleglosc kamery
+void interface(Mat image)
+{
+	Scalar lineColor = Scalar(0, 255, 0);
+	line(image, Point(322, 100), Point(322, 400), lineColor, 3); //pionowa linia
+	line(image, Point(222, 200), Point(422, 200), lineColor, 3); //pozioma gorna
+	line(image, Point(222, 300), Point(422, 300), lineColor, 3); //pozioma dolna
+}
+
+/*
+zrodlo / core https://github.com/alyssaq/opencv/blob/master/squares.cpp
+
+-jezeli nie wyswietla znakow (pik, trefl itd) -> console -> options -> use old console
+-zeby lepiej wyswietlalo zmiana konsoli na Lucida Console.
+*/
+
+int main(int /*argc*/, char** /*argv*/)
+{
+	char currentCard; //aktualna figura / liczba
+	char currentSuit; //aktualna figura / liczba
+	namedWindow(wndname, 1);  //tworzenie okna 
+	vector<vector<Point> > squares; //tworzenie listy potrzebnej do zapisu kwadratow
+	bool LT, LM, LB, RT, RM, RB; //czy w danej czesci ekranu jest kwadrat
+
+	bool continueCapture = true;
+	VideoCapture cap(0); //pobieranie obrazu z kamery
+
+						 //jezeli nie odczytuje kamery to program sie wylacza
+	if (!cap.isOpened())
+	{
+		return -1;
+	}
+
+	//jezeli odczytuje to kontynuuje
+	while (continueCapture) {
+		Mat image;
+		//wczytanie obrazu
+		cap >> image;
+
+		//jezeli wczytalo obraz
+		if (cap.read(image))
+		{
+			//reset booli przy kazdym odswiezeniu
+			LT = false, LM = false, LB = false, RT = false, RM = false, RB = false;
+
+			//uruchomienie funkcji w odpowiedniej kolejnosci
+			findSquares(image, squares);
+			interface(image);
+			checkSquaresPositions(squares, LT, LM, LB, RT, RM, RB);
+			checkCards(LT, LM, LB, RT, RM, RB, currentCard, currentSuit);
+			drawCards(currentCard, currentSuit);
+			drawSquares(image, squares);
+
+			//czekanie na klikniecie klawisza
+			auto c = waitKey();
+
+			//jezeli 'ESC' -> wylacza program
+			if (static_cast<char>(c) == 27)
+			{
+				return 0;
+			}
+			//resetowanie aktualnej karty
+			currentCard = ' ';
+			currentSuit = ' ';
+		}
+		else continueCapture = false;
+	}
+	return 0;
+}
